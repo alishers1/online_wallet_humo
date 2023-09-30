@@ -1,0 +1,5 @@
+time="2023-09-30 15:29:14" level=error msg="This is the test"
+time="2023-09-30 15:42:59" level=error msg="This is the test"
+time="2023-09-30 15:45:35" level=error msg="user not found"
+time="2023-09-30 15:45:40" level=error msg="ERROR: insert or update on table \"transactions\" violates foreign key constraint \"fk_transactions_service\" (SQLSTATE 23503)"
+time="2023-09-30 15:46:33" level=error msg="invalid character '-' in numeric literal"
