@@ -1,0 +1,14 @@
+{
+    "server": {
+        "host": "localhost",
+        "port": ":8181"
+    },
+    "database": {
+        "host": "localhost",
+        "user": "postgres",
+        "password": "postgres",
+        "db_name": "humo",
+        "port": "5432",
+        "sslmode": "disable"
+    }
+}
