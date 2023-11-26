@@ -17,8 +17,8 @@ func (s *TransferService) TransferFromWalletToWallet(senderID, recipientID, serv
 	return s.transactionRepo.TransferMoney(senderID, recipientID, serviceID, amount)
 }
 
-func (s *TransferService) TransferFromCardToWallet(senderID, recipientID, cardID uint, amount float64) error {
-	return s.transactionRepo.TransferFromCardToWallet(senderID, recipientID, cardID, amount)
+func (s *TransferService) TransferFromCardToWallet(senderID, recipientID, cardID, serviceID uint, amount float64) error {
+	return s.transactionRepo.TransferFromCardToWallet(senderID, recipientID, cardID, serviceID, amount)
 }
 
 func (s *TransferService) GetUserTransactions(userID, page, pageSize uint) ([]models.Transaction, error) {
@@ -30,4 +30,8 @@ func (s *TransferService) GetUserTransactions(userID, page, pageSize uint) ([]mo
 	}
 
 	return transactions, nil
+}
+
+func (s *TransferService) GetUserByID(userID uint) (*models.User, error) {
+	return s.transactionRepo.GetUserByID(userID)
 }

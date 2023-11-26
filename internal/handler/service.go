@@ -178,7 +178,7 @@ func (h *ServiceHandler) UpdateServiceByID(c *gin.Context) {
 
 func (h *ServiceHandler) DeleteServiceByID(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
+	serviceID, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -212,10 +212,7 @@ func (h *ServiceHandler) DeleteServiceByID(c *gin.Context) {
 		return
 	}
 
-	var service models.Service
-	service.ID = uint(id)
-
-	if err := h.serviceService.DeleteServiceByID(&service); err != nil {
+	if err := h.serviceService.DeleteServiceByID(uint(serviceID)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})

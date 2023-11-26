@@ -77,8 +77,9 @@ func (h *TransferHandler) TransferFromCardToWallet(c *gin.Context) {
 		logrus.Error(err)
 		return
 	}
+		log.Println()
 
-	if err := h.transferService.TransferFromCardToWallet(senderID, tm.RecipientID, tm.CardID, tm.Amount); err != nil {
+	if err := h.transferService.TransferFromCardToWallet(senderID, tm.RecipientID, tm.CardID, tm.ServiceID, tm.Amount); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -91,13 +92,40 @@ func (h *TransferHandler) TransferFromCardToWallet(c *gin.Context) {
 	})
 }
 
-func (h *TransferHandler) GetUserTransactions(c *gin.Context) {
-	userID, err := getUserID(c)
+func (h *TransferHandler) GetUserTransactionsByAdmin(c *gin.Context) {
+	adminID, err := getUserID(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": err.Error(),
 		})
 		log.Println(err)
+		return
+	}
+
+	admin, err := h.transferService.GetUserByID(adminID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+
+	if !admin.IsAdmin {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+
+	userIDStr := c.Param("id")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		logrus.Error(err)
 		return
 	}
 
@@ -119,12 +147,52 @@ func (h *TransferHandler) GetUserTransactions(c *gin.Context) {
 		return
 	}
 
-	transactions, err := h.transferService.GetUserTransactions(userID, uint(page), uint(pageSize))
+	transactions, err := h.transferService.GetUserTransactions(uint(userID), uint(page), uint(pageSize))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		log.Println(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, transactions)
+}
+
+func (h *TransferHandler) GetUserTransactions(c *gin.Context) {
+	userID, err := getUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+
+	pageSize, err := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+
+	transactions, err := h.transferService.GetUserTransactions(userID, uint(page), uint(pageSize))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		logrus.Error(err)
 		return
 	}
 

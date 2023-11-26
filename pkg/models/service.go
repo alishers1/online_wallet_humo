@@ -4,5 +4,6 @@ import "gorm.io/gorm"
 
 type Service struct {
 	gorm.Model
-	Name string `json:"name" gorm:"not null"`
+	IsActive bool   `gorm:"default:true"`
+	Name     string `json:"name" gorm:"unique"`
 }

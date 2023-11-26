@@ -16,3 +16,9 @@ func NewFavoriteService(favRepo *repository.FavoriteRepository) *FavoriteService
 func (s *FavoriteService) CreateFavorite(favorite models.Favorite) error {
 	return s.favRepo.CreateFavorite(favorite)
 }
+
+func (s *FavoriteService) GetUserFavoriteTransactions(userID, page, pageSize uint) ([]models.Favorite, error) {
+	offset := (page - 1) * pageSize
+
+	return s.favRepo.GetUserFavoriteTransactions(userID, offset, pageSize)
+}

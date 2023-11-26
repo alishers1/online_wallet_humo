@@ -14,12 +14,25 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{db}
 }
 
-func (r *UserRepository) CreateUser(u *models.User) (uint, error) {
+func (r *UserRepository) CreateUserByAdmin(u *models.User) (uint, error) {
 	if err := r.db.Create(&u).Error; err != nil {
 		return 0, err
 	}
 
 	return u.ID, nil
+}
+
+func (r *UserRepository) CreateUser(phoneNumber, password string) (uint, error) {
+	var user models.User
+
+	user.PhoneNumber = phoneNumber
+	user.PasswordHash = password
+
+	if err := r.db.Create(&user).Error; err != nil {
+		return 0, err
+	}
+
+	return user.ID, nil
 }
 
 func (r *UserRepository) GetUserByID(id uint) (*models.User, error) {
@@ -32,8 +45,18 @@ func (r *UserRepository) GetUserByID(id uint) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) UpdateUser(u *models.User) error {
-	if err := r.db.Where("id = ?", u.ID).Save(u).Error; err != nil {
+func (r *UserRepository) GetUserByPhoneNumber(phoneNumber string) (*models.User, error) {
+	var user models.User
+
+	if err := r.db.Where("phone_number = ?", phoneNumber).First(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepository) UpdateUser(user, updateUser *models.User) error {
+	if err := r.db.Model(&user).Updates(updateUser).Error; err != nil {
 		return err
 	}
 

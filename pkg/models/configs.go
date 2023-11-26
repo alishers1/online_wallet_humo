@@ -9,7 +9,7 @@ type DatabaseConfig struct {
 	Host string  
 	User string 
 	Password string
-	BDName string
+	DBName string
 	Port string
 	SSLMode string
 }

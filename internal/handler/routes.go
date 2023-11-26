@@ -1,21 +1,18 @@
 package handler
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"online_wallet_humo/configs"
 	"online_wallet_humo/internal/db"
 	"online_wallet_humo/internal/repository"
 	"online_wallet_humo/internal/service"
-	"online_wallet_humo/pkg/models"
 
 	"github.com/gin-gonic/gin"
 )
 
 var PostgresLine string
 
-func InitRoutes() error {
+func InitRoutes(serverStr string) error {
 	r := gin.Default()
 	db := db.GetDBConn()
 	userRepository := repository.NewUserRepository(db)
@@ -46,25 +43,59 @@ func InitRoutes() error {
 	staService := service.NewStatisticsService(staRepo)
 	staHandler := NewStatisticsHandler(staService)
 
-	api := r.Group("/api/v1")
+	apiUser := r.Group("/api/v1")
 	{
-		auth := api.Group("/auth")
+		auth := apiUser.Group("/auth")
+		{
+			auth.POST("/register", userHandler.SignUpUser)
+			auth.POST("/login", userHandler.SignInUser)
+		}
+
+		user := apiUser.Group("/user", authHandler.UserIdentity)
+		{
+			user.POST("/avatar", userHandler.UploadAvatarByUser)
+			user.GET("/avatar", userHandler.GetAvatarByUser)
+		}
+
+		service := apiUser.Group("/service", authHandler.UserIdentity)
+		{
+			service.GET("/:id", serviceHandler.GetServiceByID)
+		}
+
+		transaction := apiUser.Group("/transaction", authHandler.UserIdentity)
+		{
+			transaction.POST("/from_wallet_to_wallet", transferHandler.TransferFromWalletToWallet)
+			transaction.POST("/from_card_to_wallet", transferHandler.TransferFromCardToWallet)
+			transaction.GET("/", transferHandler.GetUserTransactions)
+			transaction.POST("/add_favorite", favHandler.CreateFavorite)
+		}
+
+		card := apiUser.Group("/card", authHandler.UserIdentity)
+		{
+			card.POST("/", cardHandler.AddCardToUser)
+			card.GET("/", cardHandler.GetUserCards)
+		}
+	}
+
+	apiAdmin := r.Group("/api/v1/admin")
+	{
+		auth := apiAdmin.Group("/auth")
 		{
 			auth.POST("/register", authHandler.SignUp)
 			auth.POST("/login", authHandler.SignIn)
 		}
 
-		user := api.Group("/user", authHandler.UserIdentity)
+		user := apiAdmin.Group("/user", authHandler.UserIdentity)
 		{
-			user.POST("/", userHandler.CreateUser)
+			user.POST("/", userHandler.CreateUserByAdmin)
 			user.GET("/:id", userHandler.GetUserByID)
-			user.PUT("/", userHandler.UpdateUser)
+			user.PUT("/:id", userHandler.UpdateUserByAdmin)
 			user.DELETE("/:id", userHandler.DeleteUser)
-			user.POST("/avatar", userHandler.UploadAvatar)
-			user.GET("/avatar", userHandler.GetAvatar)
+			user.POST("/avatar/:id", userHandler.UploadAvatarByAdmin)
+			user.GET("/avatar/:id", userHandler.GetAvatarByAdmin)
 		}
 
-		service := api.Group("/service", authHandler.UserIdentity)
+		service := apiAdmin.Group("/service", authHandler.UserIdentity)
 		{
 			service.POST("/", serviceHandler.CreateService)
 			service.GET("/:id", serviceHandler.GetServiceByID)
@@ -72,57 +103,27 @@ func InitRoutes() error {
 			service.DELETE("/:id", serviceHandler.DeleteServiceByID)
 		}
 
-		card := api.Group("/card", authHandler.UserIdentity)
-		{
-			card.POST("/", cardHandler.AddCardToUser)
-			card.GET("/", cardHandler.GetUserCards)
-		}
-
-		transfer := api.Group("/transfer", authHandler.UserIdentity)
-		{
-			transfer.POST("/from_wallet_to_wallet", transferHandler.TransferFromWalletToWallet)
-			transfer.POST("/from_card_to_wallet", transferHandler.TransferFromCardToWallet)
-			transfer.GET("/transactions", transferHandler.GetUserTransactions)
-		}
-
-		favorite := api.Group("/favorite", authHandler.UserIdentity)
-		{
-			favorite.POST("/", favHandler.CreateFavorite)
-		}
-
-		stats := api.Group("/statistics", authHandler.UserIdentity)
+		stats := apiAdmin.Group("/statistics", authHandler.UserIdentity)
 		{
 			stats.POST("/", staHandler.GetStatistics)
 		}
-	}
 
-	config, err := configs.InitConfigs()
-	if err != nil {
-		log.Println(err)
-		return err
+		transfer := apiAdmin.Group("/transfer", authHandler.UserIdentity)
+		{
+			transfer.GET("/transactions/:id", transferHandler.GetUserTransactionsByAdmin)
+		}
 	}
-
-	address := config.Server.Host + config.Server.Port
 
 	srv := http.Server{
-		Addr:    address,
+		Addr:    serverStr,
 		Handler: r,
 	}
 
-	err = srv.ListenAndServe()
+	err := srv.ListenAndServe()
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
-	PostgresLine = ToStringDBConfig(config)
-
 	return nil
-}
-
-func ToStringDBConfig(c *models.Config) string {
-	return fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
-		c.Database.Host, c.Database.User, c.Database.Password, c.Database.BDName, c.Database.Port, c.Database.SSLMode,
-	)
 }

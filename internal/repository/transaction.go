@@ -79,7 +79,7 @@ func (r *TransactionRepository) TransferMoney(senderID, recipientID, serviceID u
 	return nil
 }
 
-func (r *TransactionRepository) TransferFromCardToWallet(senderID, recipientID, cardID uint, amount float64) error {
+func (r *TransactionRepository) TransferFromCardToWallet(senderID, recipientID, cardID, serviceID uint, amount float64) error {
 	tx := r.db.Begin()
 
 	defer func() {
@@ -124,6 +124,7 @@ func (r *TransactionRepository) TransferFromCardToWallet(senderID, recipientID, 
 	transaction := models.Transaction{
 		SenderID:   sender.ID,
 		ReceiverID: recipient.ID,
+		ServiceID: serviceID,
 		Amount:     amount,
 	}
 
@@ -150,7 +151,17 @@ func (r *TransactionRepository) GetUserTransactions(userID, offset, pageSize uin
 		Limit(int(pageSize)).
 		Find(&transactions).Error; err != nil {
 		return nil, err
-	}
+		}
 
 	return transactions, nil
+}
+
+func (r *TransactionRepository) GetUserByID(userID uint) (*models.User, error) {
+	var user models.User
+
+	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

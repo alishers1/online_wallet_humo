@@ -40,8 +40,20 @@ func (r *ServiceRepository) UpdateServiceByID(s *models.Service) error {
 	return nil
 }
 
-func (r *ServiceRepository) DeleteServiceByID(s *models.Service) error {
-	if err := r.db.Where("id = ?", s.ID).Delete(s).Error; err != nil {
+func (r *ServiceRepository) DeleteServiceByID(serviceID uint) error {
+	var service models.Service
+
+	if err := r.db.First(&service, serviceID).Error; err != nil {
+		return err
+	}
+
+	service.IsActive = false
+
+	if err := r.db.Save(&service).Error; err != nil {
+		return err
+	}
+
+	if err := r.db.Delete(&service).Error; err != nil {
 		return err
 	}
 

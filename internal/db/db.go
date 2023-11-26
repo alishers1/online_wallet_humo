@@ -8,9 +8,9 @@ import (
 
 var database *gorm.DB
 
-func initDB() *gorm.DB {
+func initDB(dbStr string) *gorm.DB {
 
-	db, err := gorm.Open(postgres.Open("host=localhost user=postgres password=postgres dbname=humo port=5432 sslmode=disable"), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dbStr), &gorm.Config{})
 	if err != nil {
 		logrus.Error(err)
 	}
@@ -18,8 +18,8 @@ func initDB() *gorm.DB {
 	return db
 }
 
-func StartDBConn() {
-	database = initDB()
+func StartDBConn(dbStr string) {
+	database = initDB(dbStr)
 }
 
 func GetDBConn() *gorm.DB {

@@ -95,7 +95,6 @@ func (h *AuthHandler) SignIn(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
-		log.Println("error in auth.go/handler/line 75")
 		log.Println(err)
 		return
 	}

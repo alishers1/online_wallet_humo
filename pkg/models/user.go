@@ -12,5 +12,4 @@ type User struct {
 	Avatar       string  `json:"avatar" gorm:"column:avatar"`
 	IsActive     bool    `json:"is_active" gorm:"default:true"`
 	IsAdmin      bool    `json:"is_admin" gorm:"default:false"`
-	Cards        []Card  `json:"cards" gorm:"foreignkey:UserID"`
 }

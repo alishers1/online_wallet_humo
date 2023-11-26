@@ -25,8 +25,8 @@ func (service *ServiceService) UpdateServiceByID(s *models.Service) error {
 	return service.serviceRepo.UpdateServiceByID(s)
 }
 
-func (service *ServiceService) DeleteServiceByID(s *models.Service) error {
-	return service.serviceRepo.DeleteServiceByID(s)
+func (service *ServiceService) DeleteServiceByID(serviceID uint) error {
+	return service.serviceRepo.DeleteServiceByID(serviceID)
 }
 
 func (service *ServiceService) GetUserByID(id uint) (*models.User, error) {
